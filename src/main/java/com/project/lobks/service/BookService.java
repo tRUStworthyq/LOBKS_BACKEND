@@ -22,6 +22,7 @@ public class BookService {
     public Book readBookById(long id){
         return bookRepository.findById(id).orElseThrow(() -> new RuntimeException(""));
     }
+
     public Book createBook(BookDTO bookDTO){
         return bookRepository.save(Book
                 .builder()
@@ -30,6 +31,7 @@ public class BookService {
                 .status(bookDTO.getStatus())
                 .build());
     }
+
     public Book updateBook(Book book){
         return bookRepository.save(book);
     }
