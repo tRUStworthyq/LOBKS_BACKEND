@@ -9,28 +9,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-
 
 @Aspect
 @Component
-public class LoggingBookService {
+public class LoggerBookService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Pointcut(value = "execution(public * com.project.lobks.service.BookService.readBookById(..)) && args(id)")
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.readBookById(..)) && args(id)")
     private void readBookByIdPointcut(Long id) {}
 
-    @Pointcut(value = "execution(public * com.project.lobks.service.BookService.readAllBooks())")
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.readAllBooks())")
     private void readAllBooks() {}
 
-    @Pointcut(value = "execution(public * com.project.lobks.service.BookService.createBook(..)) && args(bookDTO)")
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.createBook(..)) && args(bookDTO)")
     private void createBookPointcut(BookDTO bookDTO) {}
 
-    @Pointcut(value = "execution(public * com.project.lobks.service.BookService.updateBook(..)) && args(book)")
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.updateBook(..)) && args(book)")
     private void updateBookPointcut(Book book) {}
 
-    @Pointcut(value = "execution(public * com.project.lobks.service.BookService.deleteBook(..)) && args(id)")
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.deleteBook(..)) && args(id)")
     private void deleteBookPointcut(Long id) {}
 
     @Around("readBookByIdPointcut(id)")
@@ -98,7 +96,7 @@ public class LoggingBookService {
         } catch (Exception e){
             e.printStackTrace();
         }
-        return "OK";
+        return new Object();
 
     }
 
