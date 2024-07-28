@@ -3,7 +3,6 @@ package com.project.lobks.security;
 import com.project.lobks.entity.User;
 import com.project.lobks.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

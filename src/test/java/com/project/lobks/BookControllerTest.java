@@ -31,6 +31,7 @@ public class BookControllerTest {
     @MockBean
     BookServiceImpl bookService;
 
+
     private final Book book = new Book(1, "1234", "1234", new Author(1L, "Maxim", "Dolgiy"));
     private final Book book2 = new Book(1, "4321", "4321", new Author(2L, "Svetlana", "Molotkova"));
     private final BookDTO bookDTO = new BookDTO("1234", "1234", 1L);

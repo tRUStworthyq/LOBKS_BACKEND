@@ -1,6 +1,5 @@
 package com.project.lobks.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +18,8 @@ public class Book {
     private long id;
 
     private String name;
-    private String status;
+    private String description;
     @ManyToOne
     private Author author;
+
 }

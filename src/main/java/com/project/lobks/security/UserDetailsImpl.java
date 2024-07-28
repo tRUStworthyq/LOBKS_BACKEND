@@ -1,8 +1,7 @@
 package com.project.lobks.security;
 
-import com.project.lobks.entity.Role;
-import com.project.lobks.entity.StatusUser;
-import com.project.lobks.entity.User;
+import com.project.lobks.entity.enums.Role;
+import com.project.lobks.entity.enums.StatusUser;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;

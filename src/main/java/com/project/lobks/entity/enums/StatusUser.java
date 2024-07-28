@@ -1,4 +1,4 @@
-package com.project.lobks.entity;
+package com.project.lobks.entity.enums;
 
 public enum StatusUser {
     ACTIVE,

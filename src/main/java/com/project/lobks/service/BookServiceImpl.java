@@ -13,16 +13,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Data
 @Service
-public class BookServiceImpl implements BookService{
+public class BookServiceImpl implements BookService {
     @Autowired
     private final BookRepository bookRepository;
 
     @Autowired
     private final AuthorRepository authorRepository;
+
 
 
     @Override
@@ -44,7 +44,7 @@ public class BookServiceImpl implements BookService{
                     .builder()
                     .name(bookDTO.getName())
                     .author(optionalAuthor.get())
-                    .status(bookDTO.getStatus())
+                    .description(bookDTO.getDescription())
                     .build());
         }
         throw new EntityNotFoundException("Author with id=" + bookDTO.getAuthorId() + " didn't found");
@@ -59,7 +59,7 @@ public class BookServiceImpl implements BookService{
             if (optionalAuthor.isPresent()) {
                 Book newBook = optionalBook.get();
                 newBook.setName(bookUpdateDTO.getName());
-                newBook.setStatus(bookUpdateDTO.getStatus());
+                newBook.setDescription(bookUpdateDTO.getDescription());
                 newBook.setAuthor(optionalAuthor.get());
 
                 return bookRepository.save(newBook);
@@ -70,12 +70,12 @@ public class BookServiceImpl implements BookService{
 
     @Override
     public List<Book> readAllBooksByAuthorId(Long id) {
-        return bookRepository.findBooksByAuthorId(id)
-                .orElseThrow(() -> new EntityNotFoundException("Books doesn't exist"));
+        return bookRepository.findBooksByAuthorId(id).orElseThrow(() -> new RuntimeException("books doesn't exists"));
     }
 
     @Override
     public void deleteBook(Long id){
         bookRepository.deleteById(id);
     }
+
 }

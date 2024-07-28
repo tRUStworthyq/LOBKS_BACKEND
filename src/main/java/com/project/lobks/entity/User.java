@@ -1,12 +1,12 @@
 package com.project.lobks.entity;
 
+import com.project.lobks.entity.enums.Role;
+import com.project.lobks.entity.enums.StatusUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.HashMap;
 
 
 @Entity
@@ -26,4 +26,5 @@ public class User {
     private StatusUser statusUser;
     @Enumerated(EnumType.STRING)
     private Role role;
+
 }

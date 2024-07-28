@@ -4,7 +4,9 @@ package com.project.lobks.aspect;
 import com.project.lobks.dto.BookDTO;
 import com.project.lobks.entity.Book;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -31,19 +33,7 @@ public class LoggerBookService {
     @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.deleteBook(..)) && args(id)")
     private void deleteBookPointcut(Long id) {}
 
-    @Around("readBookByIdPointcut(id)")
-    public Object aroundReadBookById(ProceedingJoinPoint joinPoint, Long id) throws Throwable {
-        logger.info("trying to get a book by id=" + id);
-        try {
-            Object targetMethodResult = joinPoint.proceed();
-            logger.info("book received: " + targetMethodResult);
-            return targetMethodResult;
-        } catch (Exception e){
-            e.printStackTrace();
-        }
 
-        return new Object();
-    }
 
     @Around("readAllBooks()")
     public Object aroundReadAllBooks(ProceedingJoinPoint joinPoint) throws Throwable {
