@@ -4,7 +4,9 @@ import com.project.lobks.dto.UserBookCreateDTO;
 import com.project.lobks.dto.UserBookDTO;
 import com.project.lobks.dto.UserDTO;
 import com.project.lobks.entity.Book;
+import com.project.lobks.entity.UserBook;
 import com.project.lobks.entity.UserBookEmbeddable;
+import com.project.lobks.entity.enums.StatusBook;
 import com.project.lobks.service.UserBookServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,7 +26,7 @@ public class UserBookController {
 
     @PreAuthorize("hasAuthority('user:read')")
     @GetMapping("/books/{id}")
-    public ResponseEntity<List<Book>> findBooksByUserId(@PathVariable Long id) {
+    public ResponseEntity<List<UserBookCreateDTO>> findBooksByUserId(@PathVariable Long id) {
         return new ResponseEntity<>(userBookService.findBooksByUserId(id), HttpStatus.OK);
     }
 
@@ -41,9 +43,16 @@ public class UserBookController {
     }
 
     @PreAuthorize("hasAuthority('user:read')")
-    @DeleteMapping("/del")
-    public HttpStatus deleteUserBook(@RequestBody UserBookEmbeddable userBookEmbeddable, @RequestHeader("Authorization") String jwt) {
-        userBookService.deleteUserBook(userBookEmbeddable, jwt);
+    @PatchMapping("/status")
+    public ResponseEntity<StatusBook> changeStatusBookEmbeddableId(@RequestBody UserBook userBook, @RequestHeader("Authorization") String jwt) {
+        return new ResponseEntity<>(userBookService.changeStatusBookEmbeddableId(userBook, jwt), HttpStatus.OK);
+    }
+
+
+    @PreAuthorize("hasAuthority('user:read')")
+    @DeleteMapping("/{uid}/{id}")
+    public HttpStatus deleteUserBook(@PathVariable Long uid, @PathVariable Long id, @RequestHeader("Authorization") String jwt) {
+        userBookService.deleteUserBook(new UserBookEmbeddable(uid, id), jwt);
         return HttpStatus.OK;
     }
 }
