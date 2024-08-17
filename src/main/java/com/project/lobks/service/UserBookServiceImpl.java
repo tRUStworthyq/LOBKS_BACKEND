@@ -3,7 +3,6 @@ package com.project.lobks.service;
 import com.project.lobks.dto.UserBookCreateDTO;
 import com.project.lobks.dto.UserBookDTO;
 import com.project.lobks.dto.UserDTO;
-import com.project.lobks.entity.Book;
 import com.project.lobks.entity.User;
 import com.project.lobks.entity.UserBook;
 import com.project.lobks.entity.UserBookEmbeddable;
@@ -17,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -33,13 +34,14 @@ public class UserBookServiceImpl implements UserBookService {
     private JwtService jwtService;
 
     @Override
-    public List<Book> findBooksByUserId(Long id) {
-        List<Long> book_ids = userBookRepository.findAll().stream()
+    public List<UserBookCreateDTO> findBooksByUserId(Long id) {
+        List<UserBook> userBooks = userBookRepository.findAll().stream()
                 .filter(userBook -> userBook.getUserBookEmbeddable().getUserId().equals(id))
-                .map(userBook -> userBook.getUserBookEmbeddable().getBookId())
                 .toList();
-        return bookRepository.findAll().stream()
-                .filter(book -> book_ids.contains(book.getId()))
+        return userBooks.stream()
+                .map(userBook -> new UserBookCreateDTO(bookRepository
+                        .findById(userBook.getUserBookEmbeddable().getBookId()).get(),
+                        userBook.getStatusBook()))
                 .toList();
     }
 
@@ -79,6 +81,8 @@ public class UserBookServiceImpl implements UserBookService {
 
     @Override
     public void deleteUserBook(UserBookEmbeddable userBookEmbeddable, String jwt) {
+        System.out.println(getIdFromJwt(jwt));
+        System.out.println(userBookEmbeddable.getUserId());
         if (userBookEmbeddable.getUserId().equals(getIdFromJwt(jwt))) {
             userBookRepository.deleteById(userBookEmbeddable);
         }

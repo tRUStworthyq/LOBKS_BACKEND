@@ -5,7 +5,6 @@ import com.project.lobks.dto.UserWithIdDTO;
 import com.project.lobks.entity.User;
 import com.project.lobks.entity.enums.Role;
 import com.project.lobks.entity.enums.StatusUser;
-import com.project.lobks.repository.BookRepository;
 import com.project.lobks.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +18,6 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private BookRepository bookRepository;
     @Override
     public List<UserDTO> findAllUsers() {
         List<User> users = userRepository.findAll();

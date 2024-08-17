@@ -24,7 +24,7 @@ public class UserBookController {
 
     @PreAuthorize("hasAuthority('user:read')")
     @GetMapping("/books/{id}")
-    public ResponseEntity<List<Book>> findBooksByUserId(@PathVariable Long id) {
+    public ResponseEntity<List<UserBookCreateDTO>> findBooksByUserId(@PathVariable Long id) {
         return new ResponseEntity<>(userBookService.findBooksByUserId(id), HttpStatus.OK);
     }
 

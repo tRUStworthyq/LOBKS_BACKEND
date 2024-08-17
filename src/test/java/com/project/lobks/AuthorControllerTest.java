@@ -8,11 +8,16 @@ import com.project.lobks.service.AuthorServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
@@ -20,14 +25,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthorController.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
 public class AuthorControllerTest {
 
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @MockBean
-    AuthorServiceImpl authorService;
+    private AuthorServiceImpl authorService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -44,7 +53,8 @@ public class AuthorControllerTest {
 
 
     @Test
-    void readAllAuthorsShouldReturnAllAuthors() throws Exception {
+    @WithMockUser(authorities = "user:read")
+    void userReadAllAuthorsShouldReturnAllAuthors() throws Exception {
         Mockito.when(authorService.readAllAuthors()).thenReturn(authors);
 
         mvc.perform(get("/api/authors/"))
@@ -53,7 +63,15 @@ public class AuthorControllerTest {
     }
 
     @Test
-    void readAuthorByIdShouldReturnAuthor() throws Exception {
+    @WithAnonymousUser
+    void anonymousReadAllAuthorsShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(get("/api/authors/"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(authorities = "user:read")
+    void userReadAuthorByIdShouldReturnAuthor() throws Exception {
         Mockito.when(authorService.readAuthorById(1L)).thenReturn(author1);
 
         mvc.perform(get("/api/authors/author/1"))
@@ -64,11 +82,19 @@ public class AuthorControllerTest {
     }
 
     @Test
-    void findAuthorsByFirstnameContainingAndLastnameContainingShouldReturnAuthors() throws Exception {
+    @WithAnonymousUser
+    void anonymousReadAuthorByIdShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(get("/api/authors/author/1"))
+                .andExpect(status().isUnauthorized());
+    }
+    @Test
+    @WithMockUser(authorities = "user:read")
+    void userFindAuthorsByFirstnameContainingAndLastnameContainingShouldReturnAuthors() throws Exception {
         Mockito.when(authorService.findAuthorsByFirstnameLikeAndLastnameLike(authorDTO2))
                 .thenReturn(List.of(author1, author2));
 
         mvc.perform(post("/api/authors/search")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .content(objectMapper.writeValueAsString(authorDTO2))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
@@ -77,13 +103,26 @@ public class AuthorControllerTest {
     }
 
     @Test
-    void createAuthorShouldReturnAuthor() throws Exception {
+    @WithAnonymousUser
+    void anonymousFindAuthorsByFirstnameContainingAndLastnameContainingShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(post("/api/authors/search")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(authorDTO2))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"user:read", "user:write"})
+    void adminCreateAuthorShouldReturnAuthor() throws Exception {
         Mockito.when(authorService.createAuthor(authorDTO)).thenReturn(author1);
 
         mvc.perform(post("/api/authors/create")
-                .content(objectMapper.writeValueAsString(authorDTO))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(authorDTO))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstname").value("Maxim"))
                 .andExpect(jsonPath("$.lastname").value("Dolgiy"))
@@ -91,24 +130,92 @@ public class AuthorControllerTest {
     }
 
     @Test
-    void updateAuthorShouldReturnAuthor() throws Exception {
+    @WithMockUser(authorities = "user:read")
+    void userCreateAuthorShouldReturnForbiddenStatus() throws Exception {
+        mvc.perform(post("/api/authors/create")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(authorDTO))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousCreateAuthorShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(post("/api/authors/create")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(authorDTO))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"user:read", "user:write"})
+    void adminUpdateAuthorShouldReturnAuthor() throws Exception {
         Mockito.when(authorService.updateAuthor(author1)).thenReturn(author1);
 
         mvc.perform(put("/api/authors/update")
-                .content(objectMapper.writeValueAsString(author1))
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(author1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstname").value("Maxim"))
                 .andExpect(jsonPath("$.lastname").value("Dolgiy"))
                 .andReturn();
     }
 
     @Test
-    void deleteAuthorShouldReturnOkStatus() throws Exception {
+    @WithMockUser(authorities = "user:read")
+    void userUpdateAuthorShouldReturnForbiddenStatus() throws Exception {
+        mvc.perform(put("/api/authors/update")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(author1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousUpdateAuthorShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(put("/api/authors/update")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(author1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(authorities = {"user:read", "user:write"})
+    void adminDeleteAuthorShouldReturnOkStatus() throws Exception {
         mvc.perform(delete("/api/authors/1")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @WithMockUser(authorities = "user:read")
+    void userDeleteAuthorShouldReturnForbiddenStatus() throws Exception {
+        mvc.perform(delete("/api/authors/1")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousDeleteAuthorShouldReturnUnauthorizedStatus() throws Exception {
+        mvc.perform(delete("/api/authors/1")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isUnauthorized());
+    }
 }
