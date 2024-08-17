@@ -12,6 +12,7 @@ import com.project.lobks.repository.UserBookRepository;
 import com.project.lobks.repository.UserRepository;
 import com.project.lobks.security.jwt.JwtService;
 import io.jsonwebtoken.JwtException;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -41,8 +42,7 @@ public class UserBookServiceImpl implements UserBookService {
         return userBooks.stream()
                 .map(userBook -> new UserBookCreateDTO(bookRepository
                         .findById(userBook.getUserBookEmbeddable().getBookId()).get(),
-                        userBook.getStatusBook()))
-                .toList();
+                        userBook.getStatusBook())).toList();
     }
 
     @Override
@@ -88,6 +88,20 @@ public class UserBookServiceImpl implements UserBookService {
         }
     }
 
+    @Override
+    public StatusBook changeStatusBookEmbeddableId(UserBook userBook, String jwt) {
+        if (userBook.getUserBookEmbeddable().getUserId().equals(getIdFromJwt(jwt))) {
+            Optional<UserBook> optionalUserBook = userBookRepository.findById(userBook.getUserBookEmbeddable());
+            if (optionalUserBook.isPresent()) {
+                UserBook newUserBook = optionalUserBook.get();
+                newUserBook.setStatusBook(userBook.getStatusBook());
+                userBookRepository.save(newUserBook);
+                return userBook.getStatusBook();
+            }
+            throw new EntityNotFoundException("userBook doesn't exists");
+        }
+        throw new SecurityException("attempt to access someone else's list");
+    }
 
     private Long getIdFromJwt(String jwt) {
         if (StringUtils.hasText(jwt) && jwt.startsWith("Bearer ")) {

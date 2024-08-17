@@ -6,6 +6,7 @@ import com.project.lobks.entity.Author;
 import com.project.lobks.entity.Book;
 import com.project.lobks.repository.AuthorRepository;
 import com.project.lobks.repository.BookRepository;
+import com.project.lobks.repository.UserBookRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class BookServiceImpl implements BookService {
 
     @Autowired
     private final AuthorRepository authorRepository;
+
+    @Autowired
+    private final UserBookRepository userBookRepository;
 
 
 
@@ -75,6 +79,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBook(Long id){
+        userBookRepository.findAll().stream()
+                        .filter(userBook -> userBook.getUserBookEmbeddable().getBookId().equals(id))
+                                .forEach(userBook -> userBookRepository.deleteById(userBook.getUserBookEmbeddable()));
         bookRepository.deleteById(id);
     }
 

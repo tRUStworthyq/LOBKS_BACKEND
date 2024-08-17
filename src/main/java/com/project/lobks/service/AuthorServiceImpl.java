@@ -3,6 +3,7 @@ package com.project.lobks.service;
 import com.project.lobks.dto.AuthorDTO;
 import com.project.lobks.entity.Author;
 import com.project.lobks.repository.AuthorRepository;
+import com.project.lobks.repository.BookRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Autowired
     private final AuthorRepository authorRepository;
+    @Autowired
+    private final BookServiceImpl bookService;
 
     @Override
     public List<Author> readAllAuthors() {
@@ -42,6 +45,8 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public void deleteAuthor(Long id) {
+        bookService.readAllBooksByAuthorId(id)
+                        .forEach(book -> bookService.deleteBook(book.getId()));
         authorRepository.deleteById(id);
     }
 

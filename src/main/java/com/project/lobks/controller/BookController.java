@@ -39,6 +39,7 @@ public class BookController {
     @GetMapping("/all/{id}")
     public ResponseEntity<List<Book>> readAllBooksByAuthorId(@PathVariable Long id) {
         return new ResponseEntity<>(bookService.readAllBooksByAuthorId(id), HttpStatus.OK);
+
     }
 
     @PreAuthorize("hasAuthority('user:write')")
