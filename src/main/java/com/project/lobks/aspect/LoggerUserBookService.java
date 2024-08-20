@@ -1,6 +1,7 @@
 package com.project.lobks.aspect;
 
 import com.project.lobks.dto.UserBookDTO;
+import com.project.lobks.entity.UserBook;
 import com.project.lobks.entity.UserBookEmbeddable;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -22,9 +23,25 @@ public class LoggerUserBookService {
     private void findUsersByBookId(Long id) {}
     @Pointcut("execution(public * com.project.lobks.service.UserBookServiceImpl.saveUserBook(..)) && args(userBookDTO, jwt)")
     private void saveUserBook(UserBookDTO userBookDTO, String jwt){}
+    @Pointcut("execution(public * com.project.lobks.service.UserBookServiceImpl.changeStatusBookEmbeddableId(..)) && args(userBook, jwt)")
+    private void changeStatusBookEmbeddableId(UserBook userBook, String jwt) {}
     @Pointcut("execution(public * com.project.lobks.service.UserBookServiceImpl.deleteUserBook(..)) && args(userBookEmbeddable, jwt)")
     private void deleteUserBook(UserBookEmbeddable userBookEmbeddable, String jwt){}
 
+
+    @Around("changeStatusBookEmbeddableId(userBook, jwt)")
+    public Object aroundChangeStatusBookEmbeddableId(ProceedingJoinPoint joinPoint, UserBook userBook, String jwt) throws Throwable {
+        logger.info("trying to change status a book with id=" + userBook.getUserBookEmbeddable().getBookId() + " by user with id=" + userBook.getUserBookEmbeddable().getUserId() + " to statusBook=" + userBook.getStatusBook());
+        try {
+            Object targetMethodResult = joinPoint.proceed();
+            logger.info("status book had been changed: " + targetMethodResult);
+            return targetMethodResult;
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return new Object();
+
+    }
 
     @Around("findBooksByUserId(id)")
     public Object aroundFindBooksByUserId(ProceedingJoinPoint joinPoint, Long id) throws Throwable {

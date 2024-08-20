@@ -24,6 +24,9 @@ public class LoggerBookService {
     @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.readAllBooks())")
     private void readAllBooks() {}
 
+    @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.readAllBooksByAuthorId(..)) && args(id)")
+    private void readAllBooksByAuthorIdPointcut(Long id) {}
+
     @Pointcut(value = "execution(public * com.project.lobks.service.BookServiceImpl.createBook(..)) && args(bookDTO)")
     private void createBookPointcut(BookDTO bookDTO) {}
 
@@ -43,6 +46,19 @@ public class LoggerBookService {
             logger.info("book received: " + targetMethodResult);
             return targetMethodResult;
         } catch (Exception e){
+            e.printStackTrace();
+        }
+        return new Object();
+    }
+
+    @Around("readAllBooksByAuthorIdPointcut(id)")
+    public Object aroundReadAllBooksByAuthorId(ProceedingJoinPoint joinPoint, Long id) throws Throwable {
+        logger.info("trying to get all books with authorId=" + id);
+        try {
+            Object targetMethodresult = joinPoint.proceed();
+            logger.info("books received: " + targetMethodresult);
+            return targetMethodresult;
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return new Object();

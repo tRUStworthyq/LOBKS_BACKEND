@@ -8,6 +8,7 @@ import com.project.lobks.dto.UserDTO;
 import com.project.lobks.dto.jwt.request.LoginRequest;
 import com.project.lobks.entity.Author;
 import com.project.lobks.entity.Book;
+import com.project.lobks.entity.UserBook;
 import com.project.lobks.entity.UserBookEmbeddable;
 import com.project.lobks.entity.enums.Role;
 import com.project.lobks.entity.enums.StatusBook;
@@ -56,6 +57,7 @@ public class UserBookControllerTest {
     UserBookCreateDTO userBookCreateDTO = new UserBookCreateDTO(new Book(1L, "aaa", "desc", new Author(1L, "ccc", "ddd")), StatusBook.PLANS);
     UserDTO userDTO = new UserDTO("user", "user@mail.ru", StatusUser.ACTIVE, Role.USER);
 
+    UserBook userBook = new UserBook(new UserBookEmbeddable(1L, 1L), StatusBook.PLANS);
     @PostConstruct
     public void setup() throws Exception {
         MvcResult mvcResult = mvc.perform(post("/api/auth/signin")
@@ -127,13 +129,49 @@ public class UserBookControllerTest {
     @Test
     @WithMockUser(authorities = "user:read")
     void userDeleteUserBookShouldReturnOkStatus() throws Exception {
-        mvc.perform(delete("/api/user_books/del")
+        mvc.perform(delete("/api/user_books/1/1")
                         .with(SecurityMockMvcRequestPostProcessors.csrf())
-                        .content(objectMapper.writeValueAsString(new UserBookEmbeddable(1L, 1L)))
                         .header("Authorization", jwt)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @WithAnonymousUser
+    void anonymousDeleteUserBookShouldReturnBadRequestStatus() throws Exception {
+        mvc.perform(delete("/api/user_books/1/1")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(authorities = "user:read")
+    void userChangeStatusBookEmbeddableIdShouldReturnStatusBook() throws Exception {
+        Mockito.when(userBookService.changeStatusBookEmbeddableId(userBook, jwt)).thenReturn(userBook.getStatusBook());
+
+        mvc.perform(patch("/api/user_books/status")
+                    .with(SecurityMockMvcRequestPostProcessors.csrf())
+                    .header("Authorization", jwt)
+                    .content(objectMapper.writeValueAsString(userBook))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+// Try to set expected value to StatusBook.PLANS :)
+                .andExpect(jsonPath("$").value("PLANS"));
+
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousChangeStatusBookEmbeddableIdShouldReturnBadRequestStatus() throws Exception {
+        mvc.perform(patch("/api/user_books/status")
+                        .with(SecurityMockMvcRequestPostProcessors.csrf())
+                        .content(objectMapper.writeValueAsString(userBook))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
 }
